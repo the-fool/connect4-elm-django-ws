@@ -41,7 +41,7 @@ type alias Spot =
 
 type GameState
     = Waiting
-    | Going Player
+    | Going
     | Done Player
 
 
@@ -49,6 +49,7 @@ type alias Model =
     { state : GameState
     , board : List (List Spot)
     , me : Player
+    , player : Player
     }
 
 
@@ -79,7 +80,7 @@ init =
         board =
             List.repeat cols (List.repeat rows Nothing)
     in
-        ( Model Waiting board Black, Cmd.none )
+        ( Model Waiting board Black Red, Cmd.none )
 
 
 serverUrl : String
@@ -118,7 +119,7 @@ update msg model =
                     { model | state = Waiting, me = Red } ! []
 
                 "START" ->
-                    { model | state = Going Red } ! []
+                    { model | state = Going } ! []
 
                 _ ->
                     (model |> doMove str) ! []
@@ -143,11 +144,19 @@ doMove colStr model =
                             col
                     )
 
+        flipPlayer player =
+            case player of
+                Red ->
+                    Black
+
+                Black ->
+                    Red
+
         newColumn column =
             List.Extra.span ((==) Nothing) column
-                |> \( ns, js ) -> (List.drop 1 ns) ++ (Just Red :: js)
+                |> \( ns, js ) -> (List.drop 1 ns) ++ (Just model.player :: js)
     in
-        { model | board = newBoard }
+        { model | board = newBoard, player = flipPlayer model.player }
 
 
 
