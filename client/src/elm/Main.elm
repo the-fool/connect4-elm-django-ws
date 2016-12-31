@@ -6,6 +6,11 @@ import WebSocket
 import Html.Events exposing (onClick)
 
 
+(=>) =
+    (,)
+
+
+
 -- APP
 
 
@@ -110,25 +115,24 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container", style [ ( "margin-top", "30px" ), ( "text-align", "center" ) ] ]
-        [ -- inline CSS (literal)
-          div [ class "row" ]
-            [ div [ class "col-xs-12" ]
-                [ div [ class "jumbotron" ]
-                    [ img [ src "static/img/elm.jpg", style styles.img ] []
-                      -- inline CSS (via var)
-                      -- ext 'hello' component (takes 'model' as arg)
-                    , p [] [ text ("Elm Webpack Starter") ]
-                    , button [ class "btn btn-primary btn-lg", onClick (PlayerMove 2) ]
-                        [ -- click handler
-                          span [ class "glyphicon glyphicon-star" ] []
-                          -- glyphicon
-                        , span [] [ text "FTW!" ]
-                        ]
-                    ]
-                ]
+    div
+        [ class "container"
+        , style
+            [ "margin-top" => "30px"
+            , "width" => "700px"
             ]
         ]
+        [ board model.board
+        , button [ class "btn btn-primary btn-lg", onClick (PlayerMove 2) ] []
+        ]
+
+
+board : List (List Spot) -> Html Msg
+board spotGrid =
+    div [] <|
+        List.map
+            (\row -> div [ style [ "width" => "700px" ] ] (List.map boardSpot row))
+            spotGrid
 
 
 boardSpot : Spot -> Html Msg
@@ -147,7 +151,16 @@ boardSpot spot =
                 Nothing ->
                     "white"
     in
-        div [ style [ ( "background", color ) ] ] []
+        div
+            [ style
+                [ "background" => color
+                , "width" => "100px"
+                , "height" => "100px"
+                , "float" => "left"
+                , "outline" => "1px solid"
+                ]
+            ]
+            []
 
 
 
