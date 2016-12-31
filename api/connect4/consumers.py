@@ -21,8 +21,8 @@ def ws_disconnect(message):
 def ws_message(message):
     # ASGI WebSocket packet-received and send-packet message types
     # both have a "text" key for their textual data.
-    val = int(message.content['text'])
-    val = val + 1
+    print(message.content['text'])
+
     Group(message.channel_session['room']).send({
-        'text':'{}'.format(val)
+        'text':'{}'.format(message.content['text'])
     })

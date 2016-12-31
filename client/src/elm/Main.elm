@@ -6,15 +6,10 @@ import WebSocket
 import Html.Events exposing (onClick)
 
 
--- component import example
-
-import Components.Hello exposing (hello)
-
-
 -- APP
 
 
-main : Program Never Int Msg
+main : Program Never Model Msg
 main =
     Html.program
         { init = init
@@ -28,13 +23,46 @@ main =
 -- MODEL
 
 
+type Player
+    = Red
+    | Black
+
+
+type alias Spot =
+    Maybe Player
+
+
+type GameState
+    = Waiting
+    | Going Player
+    | Done Player
+
+
 type alias Model =
-    Int
+    { state : GameState
+    , board : List (List Spot)
+    , me : Maybe Player
+    }
+
+
+boardDims : ( Int, Int )
+boardDims =
+    ( 6, 7 )
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( 0, Cmd.none )
+    let
+        rows =
+            Tuple.first boardDims
+
+        cols =
+            Tuple.second boardDims
+
+        board =
+            List.repeat rows (List.repeat cols Nothing)
+    in
+        ( Model Waiting board Nothing, Cmd.none )
 
 
 serverUrl : String
@@ -51,10 +79,14 @@ subscriptions model =
 -- UPDATE
 
 
+type alias Move =
+    Int
+
+
 type Msg
     = NoOp
+    | PlayerMove Move
     | SocketMessage String
-    | Send
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -64,10 +96,10 @@ update msg model =
             model ! []
 
         SocketMessage str ->
-            ( Result.withDefault 0 (String.toInt str), Cmd.none )
+            model ! []
 
-        Send ->
-            ( model, model |> toString |> WebSocket.send serverUrl )
+        PlayerMove mv ->
+            ( model, mv |> toString |> WebSocket.send serverUrl )
 
 
 
@@ -85,10 +117,9 @@ view model =
                 [ div [ class "jumbotron" ]
                     [ img [ src "static/img/elm.jpg", style styles.img ] []
                       -- inline CSS (via var)
-                    , hello model
                       -- ext 'hello' component (takes 'model' as arg)
                     , p [] [ text ("Elm Webpack Starter") ]
-                    , button [ class "btn btn-primary btn-lg", onClick Send ]
+                    , button [ class "btn btn-primary btn-lg", onClick (PlayerMove 2) ]
                         [ -- click handler
                           span [ class "glyphicon glyphicon-star" ] []
                           -- glyphicon
@@ -98,6 +129,25 @@ view model =
                 ]
             ]
         ]
+
+
+boardSpot : Spot -> Html Msg
+boardSpot spot =
+    let
+        color =
+            case spot of
+                Just player ->
+                    case player of
+                        Black ->
+                            "black"
+
+                        Red ->
+                            "red"
+
+                Nothing ->
+                    "white"
+    in
+        div [ style [ ( "background", color ) ] ] []
 
 
 
