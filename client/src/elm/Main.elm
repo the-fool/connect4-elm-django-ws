@@ -55,10 +55,12 @@ boardDims =
     { rows = 6, cols = 7 }
 
 
+maxWidth : Int
 maxWidth =
     700
 
 
+squareSide : Int
 squareSide =
     maxWidth // boardDims.cols
 
@@ -75,7 +77,7 @@ init =
         board =
             List.repeat cols (List.repeat rows Nothing)
     in
-        ( Model Waiting board Nothing, Cmd.none )
+        ( Model Waiting board Nothing, WebSocket.send serverUrl "join" )
 
 
 serverUrl : String
@@ -109,7 +111,12 @@ update msg model =
             model ! []
 
         SocketMessage str ->
-            model ! []
+            case str of
+                "WAIT" ->
+                    { model | state = Waiting } ! []
+
+                _ ->
+                    model ! []
 
         PlayerMove mv ->
             ( model, mv |> toString |> WebSocket.send serverUrl )

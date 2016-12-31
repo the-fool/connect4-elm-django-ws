@@ -4,12 +4,35 @@ from channels.sessions import channel_session, enforce_ordering
 from channels import Group
 from django.core.cache import cache
 
+
+def get_open_game():
+    with cache.lock('LOCK'):
+        open_game = cache.get('open')
+        if open_game is not None:
+            cache.expire('open', timeout=0)
+            return (False, open_game)
+        else:
+            # TODO set game_id to 0 in read() method in AppConfig
+            if cache.get('game_id') == None:
+                cache.set('game_id', 0)
+                cache.persist('game_id')
+            open_game = cache.incr('game_id')
+            cache.set('open', open_game)
+            cache.persist('open')
+            return (True, open_game)
+
 @enforce_ordering(slight=True)
 @channel_session
-def ws_connect(message, *args, **kwargs):
-    room = 'game-{}'.format(kwargs.get('room', None))
+def ws_connect(message):
+    new, room = get_open_game()
     message.channel_session['room'] = room
     Group(room).add(message.reply_channel)
+
+    msg = "WAIT" if new else "START"
+    Group(room).send({
+        'text': msg
+    })
+
 
 @enforce_ordering(slight=True)
 @channel_session
