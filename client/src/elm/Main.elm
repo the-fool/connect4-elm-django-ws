@@ -274,7 +274,7 @@ view model =
             ]
         ]
         [ banner model
-        , board model.board
+        , board model
         , button [ class "btn btn-primary btn-lg", onClick (PlayerMove 2) ] []
         ]
 
@@ -302,11 +302,14 @@ banner model =
         div [] [ text words ]
 
 
-board : List (List Spot) -> Html Msg
-board spotGrid =
+board : Model -> Html Msg
+board model =
     let
+        spotGrid =
+            model.board
+
         boardRow i col =
-            div [ style [ "width" => (px maxWidth) ] ] (List.indexedMap (boardSpot i) col)
+            div [ style [ "width" => (px maxWidth) ] ] (List.indexedMap (boardSpot model i) col)
     in
         div [ style [ ("position" => "relative") ] ]
             (List.indexedMap
@@ -320,8 +323,8 @@ px =
     toString >> (\x -> x ++ "px")
 
 
-boardSpot : Int -> Int -> Spot -> Html Msg
-boardSpot i j spot =
+boardSpot : Model -> Int -> Int -> Spot -> Html Msg
+boardSpot model i j spot =
     let
         color =
             case spot of
@@ -338,6 +341,12 @@ boardSpot i j spot =
 
         factor =
             (*) 100
+
+        handler i =
+            if model.state == Going && model.player == model.me then
+                PlayerMove i
+            else
+                NoOp
     in
         div
             [ style
@@ -349,6 +358,6 @@ boardSpot i j spot =
                 , "top" => (j |> factor |> px)
                 , "outline" => "1px solid"
                 ]
-            , onClick (PlayerMove i)
+            , onClick (handler i)
             ]
             []
