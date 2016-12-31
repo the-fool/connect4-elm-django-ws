@@ -37,9 +37,14 @@ init =
     ( 0, Cmd.none )
 
 
+serverUrl : String
+serverUrl =
+    "ws://127.0.0.1:8000/game/"
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    WebSocket.listen "ws://127.0.0.1/game" SocketMessage
+    WebSocket.listen serverUrl SocketMessage
 
 
 
@@ -49,20 +54,20 @@ subscriptions model =
 type Msg
     = NoOp
     | SocketMessage String
-    | Increment
+    | Send
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
+    case Debug.log "msg" msg of
         NoOp ->
             model ! []
 
         SocketMessage str ->
-            model ! []
+            ( Result.withDefault 0 (String.toInt str), Cmd.none )
 
-        Increment ->
-            (model + 1) ! []
+        Send ->
+            ( model, model |> toString |> WebSocket.send serverUrl )
 
 
 
@@ -83,7 +88,7 @@ view model =
                     , hello model
                       -- ext 'hello' component (takes 'model' as arg)
                     , p [] [ text ("Elm Webpack Starter") ]
-                    , button [ class "btn btn-primary btn-lg", onClick Increment ]
+                    , button [ class "btn btn-primary btn-lg", onClick Send ]
                         [ -- click handler
                           span [ class "glyphicon glyphicon-star" ] []
                           -- glyphicon
