@@ -144,19 +144,52 @@ doMove colStr model =
                             col
                     )
 
-        flipPlayer player =
-            case player of
-                Red ->
-                    Black
+        flipPlayer model =
+            { model
+                | player =
+                    case model.player of
+                        Red ->
+                            Black
 
-                Black ->
-                    Red
+                        Black ->
+                            Red
+            }
 
         newColumn column =
             List.Extra.span ((==) Nothing) column
                 |> \( ns, js ) -> (List.drop 1 ns) ++ (Just model.player :: js)
     in
-        { model | board = newBoard, player = flipPlayer model.player }
+        { model | board = newBoard }
+            |> checkWinner
+            |> flipPlayer
+
+
+checkWinner : Model -> Model
+checkWinner model =
+    let
+        columns =
+            model.board
+
+        rows =
+            List.Extra.transpose model.board
+
+        checkIt =
+            List.Extra.group
+                >> List.Extra.maximumBy List.length
+                >> Maybe.withDefault []
+                >> List.filter ((/=) Nothing)
+                >> List.length
+                >> (==) 4
+
+        checkAll =
+            [ rows, columns ]
+                |> List.map (List.any checkIt)
+                |> List.any ((==) True)
+    in
+        if checkAll then
+            { model | state = Done model.player }
+        else
+            model
 
 
 
