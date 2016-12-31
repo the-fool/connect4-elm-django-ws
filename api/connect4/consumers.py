@@ -6,6 +6,10 @@ from django.core.cache import cache
 
 
 def get_open_game():
+    """
+    Get an open game id, and return the tuple :
+    (need another player?, room id)
+    """
     with cache.lock('LOCK'):
         open_game = cache.get('open')
         if open_game is not None:

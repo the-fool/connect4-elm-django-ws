@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import WebSocket
 import Html.Events exposing (onClick)
+import List.Extra
 
 
 (=>) : a -> b -> ( a, b )
@@ -120,10 +121,33 @@ update msg model =
                     { model | state = Going Red } ! []
 
                 _ ->
-                    model ! []
+                    (model |> doMove str) ! []
 
         PlayerMove mv ->
             ( model, mv |> toString |> WebSocket.send serverUrl )
+
+
+doMove : String -> Model -> Model
+doMove colStr model =
+    let
+        colIndex =
+            String.toInt colStr |> Result.withDefault 0
+
+        newBoard =
+            model.board
+                |> List.indexedMap
+                    (\i col ->
+                        if i == colIndex then
+                            newColumn col
+                        else
+                            col
+                    )
+
+        newColumn column =
+            List.Extra.span ((==) Nothing) column
+                |> \( ns, js ) -> (List.drop 1 ns) ++ (Just Red :: js)
+    in
+        { model | board = newBoard }
 
 
 
@@ -151,10 +175,11 @@ board spotGrid =
         boardRow i col =
             div [ style [ "width" => (px maxWidth) ] ] (List.indexedMap (boardSpot i) col)
     in
-        div [ style [ ("position" => "relative") ] ] <|
-            List.indexedMap
+        div [ style [ ("position" => "relative") ] ]
+            (List.indexedMap
                 boardRow
                 spotGrid
+            )
 
 
 px : Int -> String
