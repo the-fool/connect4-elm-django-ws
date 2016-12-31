@@ -50,22 +50,30 @@ type alias Model =
     }
 
 
-boardDims : ( Int, Int )
+boardDims : { rows : Int, cols : Int }
 boardDims =
-    ( 6, 7 )
+    { rows = 6, cols = 7 }
+
+
+maxWidth =
+    700
+
+
+squareSide =
+    maxWidth // boardDims.cols
 
 
 init : ( Model, Cmd Msg )
 init =
     let
         rows =
-            Tuple.first boardDims
+            boardDims.rows
 
         cols =
-            Tuple.second boardDims
+            boardDims.cols
 
         board =
-            List.repeat rows (List.repeat cols Nothing)
+            List.repeat cols (List.repeat rows Nothing)
     in
         ( Model Waiting board Nothing, Cmd.none )
 
@@ -119,7 +127,6 @@ view model =
         [ class "container"
         , style
             [ "margin-top" => "30px"
-            , "width" => "700px"
             ]
         ]
         [ board model.board
@@ -129,14 +136,23 @@ view model =
 
 board : List (List Spot) -> Html Msg
 board spotGrid =
-    div [] <|
-        List.map
-            (\row -> div [ style [ "width" => "700px" ] ] (List.map boardSpot row))
-            spotGrid
+    let
+        boardRow i col =
+            div [ style [ "width" => (px maxWidth) ] ] (List.indexedMap (boardSpot i) col)
+    in
+        div [ style [ ("position" => "relative") ] ] <|
+            List.indexedMap
+                boardRow
+                spotGrid
 
 
-boardSpot : Spot -> Html Msg
-boardSpot spot =
+px : Int -> String
+px =
+    toString >> (\x -> x ++ "px")
+
+
+boardSpot : Int -> Int -> Spot -> Html Msg
+boardSpot i j spot =
     let
         color =
             case spot of
@@ -150,13 +166,18 @@ boardSpot spot =
 
                 Nothing ->
                     "white"
+
+        factor =
+            (*) 100
     in
         div
             [ style
                 [ "background" => color
                 , "width" => "100px"
                 , "height" => "100px"
-                , "float" => "left"
+                , "position" => "absolute"
+                , "left" => (i |> factor |> px)
+                , "top" => (j |> factor |> px)
                 , "outline" => "1px solid"
                 ]
             ]
