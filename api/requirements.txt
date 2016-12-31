@@ -1,0 +1,4 @@
+django==1.10.4
+django-redis==4.6.0
+channels
+asgi_redis
