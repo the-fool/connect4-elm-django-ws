@@ -171,7 +171,10 @@ doMove colStr model =
     in
         { model | board = newBoard }
             |> checkWinner
-            |> flipPlayer
+            |> if model.state == Going then
+                flipPlayer
+               else
+                identity
 
 
 
