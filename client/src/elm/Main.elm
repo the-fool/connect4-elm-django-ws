@@ -191,5 +191,6 @@ boardSpot i j spot =
                 , "top" => (j |> factor |> px)
                 , "outline" => "1px solid"
                 ]
+            , onClick (PlayerMove i)
             ]
             []
