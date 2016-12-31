@@ -270,12 +270,36 @@ view model =
     div
         [ class "container"
         , style
-            [ "margin-top" => "30px"
+            [ "margin" => "30px"
             ]
         ]
-        [ board model.board
+        [ banner model
+        , board model.board
         , button [ class "btn btn-primary btn-lg", onClick (PlayerMove 2) ] []
         ]
+
+
+banner : Model -> Html Msg
+banner model =
+    let
+        words =
+            case model.state of
+                Waiting ->
+                    "Waiting for opponent to join"
+
+                Going ->
+                    if model.player == model.me then
+                        "Your turn"
+                    else
+                        "Opponent's turn"
+
+                Done p ->
+                    if p == model.me then
+                        "You win!"
+                    else
+                        "Opponent wins!"
+    in
+        div [] [ text words ]
 
 
 board : List (List Spot) -> Html Msg
