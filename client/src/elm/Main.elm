@@ -4,12 +4,22 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import WebSocket
 import Html.Events exposing (onClick)
-import List.Extra
+import List.Extra exposing ((!!))
 
 
 (=>) : a -> b -> ( a, b )
 (=>) =
     (,)
+
+
+grabAt : Int -> List a -> List a
+grabAt i =
+    List.drop i >> List.take 1
+
+
+rangex : Int -> Int -> List Int
+rangex lo hi =
+    List.range lo (hi - 1)
 
 
 
@@ -164,6 +174,52 @@ doMove colStr model =
             |> flipPlayer
 
 
+
+--getDiagonals : List (List a) -> List (List a)
+
+
+getDiagonals : List (List a) -> List (List a)
+getDiagonals grid =
+    let
+        nrows =
+            List.head grid |> Maybe.withDefault [] |> List.length
+
+        ncols =
+            List.length grid
+
+        starts =
+            List.Extra.lift2 (,) (rangex 0 ncols) (rangex 0 nrows)
+
+        diag xs ys =
+            List.map2
+                (\x y -> grid !! x |> Maybe.withDefault [] |> grabAt y)
+                xs
+                ys
+                |> List.concat
+
+        -- Two kinds of diags, down-right and upRight
+        diags isReversed =
+            starts
+                |> List.map
+                    (\( col, row ) ->
+                        diag (rangex col ncols)
+                            (rangex row nrows
+                                |> if isReversed then
+                                    List.reverse
+                                   else
+                                    identity
+                            )
+                    )
+
+        upRight =
+            diags True
+
+        downRight =
+            diags False
+    in
+        upRight ++ downRight
+
+
 checkWinner : Model -> Model
 checkWinner model =
     let
@@ -177,12 +233,23 @@ checkWinner model =
             List.Extra.group
                 >> List.Extra.maximumBy List.length
                 >> Maybe.withDefault []
-                >> List.filter ((/=) Nothing)
+                >> (\l ->
+                        -- Is this a list of nothings?
+                        case List.head l of
+                            Just Nothing ->
+                                []
+
+                            _ ->
+                                l
+                   )
                 >> List.length
                 >> (==) 4
 
+        diagonals =
+            getDiagonals model.board
+
         checkAll =
-            [ rows, columns ]
+            [ rows, columns, diagonals ]
                 |> List.map (List.any checkIt)
                 |> List.any ((==) True)
     in
