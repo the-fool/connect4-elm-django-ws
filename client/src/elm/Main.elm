@@ -6,6 +6,7 @@ import WebSocket
 import Html.Events exposing (onClick)
 
 
+(=>) : a -> b -> ( a, b )
 (=>) =
     (,)
 
@@ -46,7 +47,7 @@ type GameState
 type alias Model =
     { state : GameState
     , board : List (List Spot)
-    , me : Maybe Player
+    , me : Player
     }
 
 
@@ -77,7 +78,7 @@ init =
         board =
             List.repeat cols (List.repeat rows Nothing)
     in
-        ( Model Waiting board Nothing, WebSocket.send serverUrl "join" )
+        ( Model Waiting board Black, Cmd.none )
 
 
 serverUrl : String
@@ -111,9 +112,12 @@ update msg model =
             model ! []
 
         SocketMessage str ->
-            case str of
+            case Debug.log "ws" str of
                 "WAIT" ->
-                    { model | state = Waiting } ! []
+                    { model | state = Waiting, me = Red } ! []
+
+                "START" ->
+                    { model | state = Going Red } ! []
 
                 _ ->
                     model ! []
