@@ -24,7 +24,8 @@ def get_open_game():
 @enforce_ordering(slight=True)
 @channel_session
 def ws_connect(message):
-    new, room = get_open_game()
+    new, room_number = get_open_game()
+    room = str(room_number)
     message.channel_session['room'] = room
     Group(room).add(message.reply_channel)
 
