@@ -56,12 +56,13 @@ if ( TARGET_ENV === 'development' ) {
   module.exports = merge( commonConfig, {
 
     entry: [
-      'webpack-dev-server/client?http://localhost:8080',
+      'webpack-dev-server/client?http://0.0.0.0:8080',
       entryPath
     ],
 
     devServer: {
-      // serve index.html in place of 404 responses
+	// serve index.html in place of 404 responses
+	host: '0.0.0.0',
       historyApiFallback: true,
     },
 

@@ -1,0 +1,25 @@
+version: '2'
+
+services:
+  redis:
+    image: redis:latest
+
+  api:
+    build: ./api
+    volumes:
+      - ./api:/app
+    ports:
+      - "8000:8000"
+    links:
+      - redis
+    command: python manage.py runserver 0.0.0.0:8000
+
+  client:
+    build: ./client
+    volumes:
+      - ./client:/app
+    ports:
+      - "8080:8080"
+    links:
+      - api
+    command: npm start
