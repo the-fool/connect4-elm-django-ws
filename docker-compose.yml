@@ -22,4 +22,4 @@ services:
       - "8080:8080"
     links:
       - api
-    command: npm start
+    command: node node_modules/webpack-dev-server/bin/webpack-dev-server.js --hot --inline --content-base src/
